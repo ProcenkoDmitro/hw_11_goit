@@ -29,7 +29,7 @@ class AddressBook(UserDict):
 
 
 class Record:
-    def __init__(self, new_name, birthday=None):
+    def __init__(self, new_name):
         self.name = Name(new_name)
         self.phones = []
         self.birthday = None
@@ -37,23 +37,20 @@ class Record:
 
     @input_error
     def add_phone(self, new_phone):
-        if not Phone.phone_validation(new_phone):
-            add_phone = Phone()
-            add_phone.value = new_phone
-            self.phones.append(add_phone)
+        add_phone = Phone()
+        add_phone.value = new_phone
+        self.phones.append(add_phone)
 
 
     @input_error
     def change_phone(self, old_phone, new_phone):
-        if not Phone.phone_validation(new_phone):
-            for phone in self.phones:
-                if phone.value == old_phone:
-                    new_pn = Phone()
-                    new_pn.value = new_phone
-                    self.phones.append(new_pn)
-                    self.phones.remove(phone)
-        else:
-            print("Phone number doesn't exist")
+        for phone in self.phones:
+            if phone.value == old_phone:
+                new_pn = Phone()
+                new_pn.value = new_phone
+                self.phones.append(new_pn)
+                self.phones.remove(phone)
+        
 
 
     def remove_phone(self, old_phone):
@@ -66,10 +63,9 @@ class Record:
 
     @input_error
     def add_birthday(self, birthday):
-        if not Birthday.birthday_validation(birthday):
-            bday = Birthday()
-            bday.value = birthday
-            self.birthday = bday
+        bday = Birthday()
+        bday.value = birthday
+        self.birthday = bday
 
 
     def days_to_birthday(self):
@@ -85,7 +81,7 @@ class Record:
             print('Empty')
 
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f'{self.phones}'
 
 
@@ -111,28 +107,23 @@ class Name(Field):
 
 class Phone(Field):
     @Field.value.setter
-    def value(self, phone):
-        self._value = phone
+    def value(self, value):
+        if len(value) < 10 or len(value) > 12:
+            raise ValueError("Phone must contains 10 symbols.")
+        if not value.isnumeric():
+            raise ValueError('Wrong phones.')
+        self._value = value
 
 
-    @classmethod
-    def phone_validation(cls, value):
-        return 10 <= len(value) <= 12
-
-
-    def __repr__(self) -> str:
-        return self.value
-
-
+    
 class Birthday(Field):
     @Field.value.setter
-    def value(self, birthday):
-        self._value = datetime.strptime(birthday, '%Y.%m.%d').date()
-
-
-    @classmethod
-    def birthday_validation(cls, value):
-        return 0 < int(value.split('.')[0]) <= datetime.now().date().year and 0 < int(value.split('.')[1]) <= 12 and 0 < int(value.split('.')[2]) <= 31
+    def value(self, value):
+        today = datetime.now().date()
+        birth_date = datetime.strptime(value, '%Y-%m-%d').date()
+        if birth_date > today:
+            raise ValueError("Birthday must be less than current year and date.")
+        self._value = value
 
 
 addressbook = AddressBook()
